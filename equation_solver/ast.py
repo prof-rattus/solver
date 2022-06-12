@@ -1,5 +1,6 @@
+import string
 from .rational import (
-    Rational, 
+    Rational,
     Variable
 )
 from .operators import (
@@ -12,11 +13,13 @@ from .operators import (
 from .eqaution import Equation
 
 NUMS = "0123456789"
-STATE_NUMBER = 'NUMBER'
-STATE_OPERATOR = 'OPERATOR'
+VARS = "abcdefghijklmnopqrstuvwxyz"
+STATE_VARIABLE = "VARIABLE"
+STATE_NUMBER = "NUMBER"
+STATE_OPERATOR = "OPERATOR"
 STATE_BRACE_OPEN = '('
 STATE_BRACE_CLOSE = ')'
-OPERATORS="+-*/=^"
+OPERATORS = "+-*/=^"
 OPTOCLASS = {
     "+": Addition,
     "-": Subtraction,
@@ -24,6 +27,7 @@ OPTOCLASS = {
     "/": Division,
     "^": Raise
 }
+
 
 class AST():
     """
@@ -33,8 +37,10 @@ class AST():
     ----------
     expression as a string,which will be parsed later:BinOperator
     """
+
     def __init__(self, expr):
         self.expr = expr
+
     def readNumVar(self, part):
         """
         This method is able to read a sindle numerical expression or variable x.
@@ -54,8 +60,9 @@ class AST():
             mul = -1
             a = a[1:]
             s = 1
-        
+
         seenNumber = False
+        seenVariable = False
         res = 0
         for k, b in enumerate(a):
             if b == " ":
@@ -67,10 +74,10 @@ class AST():
             if k == 0 and b == "+":
                 s += 1
                 continue
-            if b == "x":
-                seenNumber = True
+            if b in VARS and not seenNumber:
+                seenVariable = True
                 s += 1
-                res = "x"
+                var = b
                 break
             if b not in NUMS:
                 break
@@ -78,10 +85,10 @@ class AST():
             s += 1
             res = res * 10 + NUMS.index(b)
             seenNumber = True
-        
-        if not seenNumber:
+
+        if not seenNumber and not seenVariable:
             return (0, 0)
-        
+
         if b == ".":
             div = 1
             for c in a[k+1:]:
@@ -89,19 +96,18 @@ class AST():
                     s += 1
                     continue
                 if c not in NUMS:
-                    break 
+                    break
                 s += 1
                 div = div * 10
                 c = NUMS.index(c)
                 res = res + c / div
 
-        if res == "x":
+        if seenVariable:
             if mul == -1:
-                return ("-x", s)
+                return (f"-{var}", s)
             else:
-                return ("x", s)
+                return (var, s)
         return (res * mul, s)
-
 
     def tokenizer(self):
         """
@@ -120,10 +126,10 @@ class AST():
         """
         a = self.expr
         currentState = None
-        nextStates = [STATE_NUMBER, STATE_BRACE_OPEN]
+        nextStates = [STATE_NUMBER, STATE_BRACE_OPEN, STATE_VARIABLE]
         k = 0
         res = []
-            
+
         while k < len(a):
             if a[k] == " ":
                 k += 1
@@ -132,7 +138,7 @@ class AST():
             if STATE_BRACE_OPEN in nextStates and a[k] == "(":
                 res.append(a[k])
                 k += 1
-                nextStates = [STATE_BRACE_OPEN, STATE_NUMBER]
+                nextStates = [STATE_BRACE_OPEN, STATE_NUMBER, STATE_VARIABLE]
                 currentState = STATE_BRACE_OPEN
                 continue
             elif STATE_BRACE_CLOSE in nextStates and a[k] == ")":
@@ -141,21 +147,27 @@ class AST():
                 nextStates = [STATE_BRACE_CLOSE, STATE_OPERATOR]
                 currentState = STATE_BRACE_CLOSE
                 continue
-            elif STATE_NUMBER in nextStates:
-                (n, s) = self.readNumVar(a[k:])
-                if s == 0:
-                    raise Exception(f"From the {k}th symbol is unlear, check your syntax.")
-                k += s
-                res.append(n)
-                currentState = STATE_NUMBER
-                nextStates = [STATE_OPERATOR,STATE_BRACE_CLOSE]
-            elif STATE_OPERATOR in nextStates:
-                if a[k] not in OPERATORS:
-                    raise Exception(f"{a[k]} is not an operator at {k}th")
+            elif STATE_OPERATOR in nextStates and a[k] in OPERATORS:
+                # if a[k] not in OPERATORS:
+                #     raise Exception(f"{a[k]} is not an operator at {k}th")
                 res.append(a[k])
                 k += 1
                 currentState = STATE_OPERATOR
-                nextStates = [STATE_NUMBER, STATE_BRACE_OPEN]
+                nextStates = [STATE_NUMBER, STATE_BRACE_OPEN, STATE_VARIABLE]
+            elif STATE_NUMBER in nextStates or STATE_VARIABLE in nextStates:
+                (n, s) = self.readNumVar(a[k:])
+                if s == 0:
+                    raise Exception(
+                        f"From the {k}th symbol is unlear, check your syntax.")
+                k += s
+                res.append(n)
+                if type(n) == string:
+                    currentState = STATE_VARIABLE
+                    nextStates = [STATE_OPERATOR, STATE_BRACE_CLOSE]
+                else:
+                    currentState = STATE_NUMBER
+                    nextStates = [STATE_OPERATOR,
+                                  STATE_BRACE_CLOSE, STATE_VARIABLE]
 
         if currentState not in [STATE_NUMBER, STATE_BRACE_CLOSE]:
             raise Exception("Invalid syntax.")
@@ -177,7 +189,17 @@ class AST():
         """
         nums = []
         ops = []
+        prevOperator = True
         for a in toks:
+            if a in OPTOCLASS:
+                prevOperator = True
+                ops.append(OPTOCLASS[a])
+                continue
+
+            if not prevOperator:
+                ops.append(OPTOCLASS["*"])
+            prevOperator = False
+
             if type(a) == int or type(a) == float:
                 nums.append(Rational(a))
             elif a == "x":
@@ -186,14 +208,13 @@ class AST():
                 nums.append(Multiplication(Variable(a), Rational(-1)))
             elif type(a) == list:
                 nums.append(self.split(a))
-            elif a in OPTOCLASS:
-                ops.append(OPTOCLASS[a])
             else:
-                raise Exception("The input given is wrong.Check it, otherwise this won't work.")
-        return (nums,ops)
+                raise Exception(
+                    "The input given is wrong.Check it, otherwise this won't work.")
+        return (nums, ops)
 
 
-    def evaluate_ops(self,nums, ops, opsToEvaluate):
+    def evaluate_ops(self, nums, ops, opsToEvaluate):
         """
         This method filters out which operators should be evaluated first.Also transfers into classes.
 
@@ -208,12 +229,12 @@ class AST():
         """
         nums2 = []
         ops2 = []
-        
+
         r = nums.pop(0)
         while nums and ops:
             o = ops.pop(0)
             s = nums.pop(0)
-            
+
             if o in opsToEvaluate:
                 r = o(r, s)
             else:
@@ -222,9 +243,8 @@ class AST():
                 r = s
 
         nums2.append(r)
-        
-        return nums2, ops2
 
+        return nums2, ops2
 
     def tok_to_list(self, tok):
         """
@@ -232,7 +252,7 @@ class AST():
 
         Example
         --------
-        ["(", 4, "+", 5") "+" 5] -> [[4, +, 5], "+",5]
+        ["(", 4, "+", 5, ")", "+" 5] -> [[4, +, 5], "+",5]
 
         Parameters
         ------------
@@ -262,11 +282,10 @@ class AST():
             raise Exception("not closed parenthes")
         return root
 
-
     def eval(self, nums, ops):
         """
         This method builds everything together into an AST
-        
+
         Parameters
         ------------
         nums,ops
@@ -274,18 +293,18 @@ class AST():
         Returns
         -----------
         builded AST
-        
-        
+
+
         """
-        for i,k in enumerate(nums):
+        for i, k in enumerate(nums):
             if type(k) == tuple:
                 nums[i] = self.eval(k[0], k[1])
-        (nums,ops) = self.evaluate_ops(nums,ops,[Raise])
+        (nums, ops) = self.evaluate_ops(nums, ops, [Raise])
         (nums, ops) = self.evaluate_ops(nums, ops, [Multiplication, Division])
         (nums, ops) = self.evaluate_ops(nums, ops, [Addition, Subtraction])
         if len(nums) != 1 or ops:
             raise Exception("invalid syntax")
-    
+
         return nums.pop()
 
     def parse(self):
@@ -308,11 +327,12 @@ class AST():
             index = toks.index("=")
             tok = toks[0:index]
             tok2 = toks[index + 1:]
-            (nums,ops) = self.split(tok)
-            (nums2,ops2) = self.split(tok2)
+            (nums, ops) = self.split(tok)
+            (nums2, ops2) = self.split(tok2)
             expr_a = self.eval(nums, ops)
             expr_b = self.eval(nums2, ops2)
-            return Equation(expr_a,expr_b)
+            return Equation(expr_a, expr_b)
         else:
-            (nums,ops) = self.split(toks)
-            return self.eval(nums,ops)
+            (nums, ops) = self.split(toks)
+            return self.eval(nums, ops)
+

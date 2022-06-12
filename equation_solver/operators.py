@@ -114,7 +114,7 @@ class Subtraction(BinOperator):
         return self.a.eval() - self.b.eval()
     def __str__(self):
         """
-        This method is built to print Rational formaatted, so users undestand.
+        This method is built to print Rational formatted, so users undestand.
 
         Parameters
         ------------

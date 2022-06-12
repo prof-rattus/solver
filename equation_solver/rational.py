@@ -265,10 +265,13 @@ class Variable():
     This class represents the mathematical conception of a variable in an expression.
     """
     def __init__(self, x):
-         self.x = x 
+        self.x = x
+    def __eq__(self, b):
+        return self.x == b.x
+        
     def __str__(self):
         """
-        This method is built to print Rational formaatted, so users undestand.
+        This method is built to print Rational formatted, so users undestand.
 
         Parameters
         ------------
