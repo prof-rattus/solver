@@ -89,6 +89,8 @@ class Addition(BinOperator):
         Polynomial()
         """
         return self.a.poly() + self.b.poly()
+    def lineq(self):
+        return self.a.lineq() + self.b.lineq()
 
 
 class Subtraction(BinOperator):
@@ -138,6 +140,8 @@ class Subtraction(BinOperator):
         Polynomial()
         """
         return self.a.poly() - self.b.poly()
+    def lineq(self):
+        return self.a.lineq() - self.b.lineq()
 
 
 class Multiplication (BinOperator):
@@ -187,6 +191,8 @@ class Multiplication (BinOperator):
         Polynomial()
         """
         return self.a.poly() * self.b.poly()
+    def lineq(self):
+        return self.a.lineq() * self.b.lineq()
 
 
 class Division(BinOperator):
@@ -240,7 +246,8 @@ class Division(BinOperator):
         if len(b) != 1:
             raise Exception("No Variables, yet.")
         return a / b[0]
-
+    def lineq(self):
+        return self.a.lineq() / self.b.lineq()
 
 
 class Raise(BinOperator):
@@ -294,3 +301,5 @@ class Raise(BinOperator):
         if len(b) != 1:
             raise Exception("Invalid.")
         return a ** b[0]
+    def lineq(self):
+        return self.a.lineq() ** self.b.lineq()

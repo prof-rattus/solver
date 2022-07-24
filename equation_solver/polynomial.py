@@ -3,7 +3,7 @@ from equation_solver.rational import Rational
 
 class Polynomial():
     """
-      This class represents the mathematical conception of the polynomial expression.
+      This class represents the mathematical concept of the polynomial expression.
     """
     def __init__(self, l):
         self.l = l 

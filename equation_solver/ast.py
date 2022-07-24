@@ -43,7 +43,7 @@ class AST():
 
     def readNumVar(self, part):
         """
-        This method is able to read a sindle numerical expression or variable x.
+        This method is able to read a single numerical expression or variable x.
 
         Parameters
         ------------
@@ -202,9 +202,9 @@ class AST():
 
             if type(a) == int or type(a) == float:
                 nums.append(Rational(a))
-            elif a == "x":
+            elif type(a) == str and a[0] != "-":
                 nums.append(Variable(a))
-            elif a == "-x":
+            elif type(a) == str and a[0] == "-":
                 nums.append(Multiplication(Variable(a), Rational(-1)))
             elif type(a) == list:
                 nums.append(self.split(a))
@@ -336,3 +336,6 @@ class AST():
             (nums, ops) = self.split(toks)
             return self.eval(nums, ops)
 
+#3 = x
+#
+# 4 = y

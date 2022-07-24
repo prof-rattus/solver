@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "equation_solver"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

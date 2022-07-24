@@ -91,3 +91,25 @@ class Equation(BinOperator):
                         ),
                         2 * a
                     ))]
+    def lineq(self):
+       return Subtraction(self.a, self.b).lineq()
+
+# -2 + 5x + 7y = 0, 3x - 4y = 9
+
+# f1(x, y, ...) = 0,
+# f2(x, y, ...) = 0,
+# f3(x, y, ...) = 0,
+# ....
+
+# x(y) = (-7y + 2) / 5
+# x(y, z, ...) = g11, g12
+
+# f2(g12, y, z, ...)
+# y(z, ...) = g21, g22
+# 
+
+# 3((-7y + 2) / 5) - 4y = 9
+# -21y / 5 + 6/5 - 4y = 9
+# -21y + 6 - 40y = 45
+# -61y = 39
+# y = -39 / 61

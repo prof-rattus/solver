@@ -1,3 +1,4 @@
+
 class Rational():
     '''
     Rational class represents rational numbers.
@@ -258,7 +259,28 @@ class Rational():
         return self.a / self.b
     def expr(self):
         return f"{self.a} // {self.b}"
-
+    def lineq(self):
+        return LinearEquation(self)
+    def __lt__(self, b):
+        a = Rational(self.a * b.b, self.b * b.b)
+        b = Rational(b.a* self.b, b.b * self.b)
+        return a.a < b.a
+    def __gt__(self, b):
+        a = Rational(self.a * b.b, self.b * b.b)
+        b = Rational(b.a* self.b, b.b * self.b)
+        return a.a > b.a
+    def __le__(self, b):
+        a = Rational(self.a * b.b, self.b * b.b)
+        b = Rational(b.a* self.b, b.b * self.b)
+        return a.a <= b.a    
+    def __ge__(self, b):
+        a = Rational(self.a * b.b, self.b * b.b)
+        b = Rational(b.a* self.b, b.b * self.b)
+        return a.a >= b.a
+    def __ne__(self, b):
+        a = Rational(self.a * b.b, self.b * b.b)
+        b = Rational(b.a* self.b, b.b * self.b)
+        return a.a != b.a    
 
 class Variable():
     """
@@ -282,6 +304,8 @@ class Variable():
         formatted plausible string represantation of self
         """
         return self.x
+    def __hash__(self):
+        return self.x.__hash__()
     def expr(self):
         """
         This method returns an expression as a string.
@@ -313,6 +337,8 @@ class Variable():
 
         """
         return Polynomial([Rational(0), Rational(1)])
-
+    def lineq(self):
+        return LinearEquation(Rational(0), {self: 1})
 
 from .polynomial import Polynomial
+from .linear_equation import LinearEquation
